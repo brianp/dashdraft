@@ -1,0 +1,102 @@
+// Prisma schema for DashDraft documentation editor
+// Run `npm run db:generate` after changes to regenerate the client
+// Run `npm run db:migrate` to create/apply migrations
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// User record linked to GitHub identity
+model User {
+  id           String   @id @default(cuid())
+  githubUserId Int      @unique @map("github_user_id")
+  login        String
+  avatarUrl    String   @map("avatar_url")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  sessions      Session[]
+  installations Installation[]
+  proposals     Proposal[]
+
+  @@map("users")
+}
+
+/// Server-side session for authenticated users
+/// Session ID is stored in HTTP-only cookie, never exposed to client JS
+model Session {
+  id         String   @id @default(cuid())
+  userId     String   @map("user_id")
+  expiresAt  DateTime @map("expires_at")
+  createdAt  DateTime @default(now()) @map("created_at")
+  lastSeenAt DateTime @default(now()) @map("last_seen_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+/// GitHub App installation linked to a user
+/// A user can have multiple installations (personal + orgs)
+model Installation {
+  id             String   @id @default(cuid())
+  installationId Int      @unique @map("installation_id")
+  accountLogin   String   @map("account_login")
+  accountType    String   @map("account_type") // "User" or "Organization"
+  accountAvatar  String   @map("account_avatar")
+  userId         String   @map("user_id")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  repoAccess RepoAccess[]
+
+  @@index([userId])
+  @@map("installations")
+}
+
+/// Repository access granted through an installation
+/// Used to filter which repos appear in the user's workspace
+model RepoAccess {
+  id             String   @id @default(cuid())
+  installationId String   @map("installation_id")
+  repoId         Int      @map("repo_id")
+  repoFullName   String   @map("repo_full_name")
+  repoName       String   @map("repo_name")
+  isPrivate      Boolean  @default(false) @map("is_private")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  installation Installation @relation(fields: [installationId], references: [id], onDelete: Cascade)
+
+  @@unique([installationId, repoId])
+  @@index([installationId])
+  @@index([repoFullName])
+  @@map("repo_access")
+}
+
+/// Proposal (PR) metadata for tracking status
+/// We store minimal info; full details fetched from GitHub when needed
+model Proposal {
+  id           String   @id @default(cuid())
+  userId       String   @map("user_id")
+  repoFullName String   @map("repo_full_name")
+  prNumber     Int      @map("pr_number")
+  prUrl        String   @map("pr_url")
+  title        String
+  status       String   // pending, approved, published, closed, conflict
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([repoFullName, prNumber])
+  @@index([userId])
+  @@index([repoFullName])
+  @@map("proposals")
+}
