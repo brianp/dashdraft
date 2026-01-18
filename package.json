@@ -28,7 +28,7 @@
     "@tiptap/starter-kit": "^3.15.3",
     "@uiw/react-codemirror": "^4.23.8",
     "idb": "^8.0.2",
-    "next": "15.1.4",
+    "next": "15.1.11",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "rehype-raw": "^7.0.0",
