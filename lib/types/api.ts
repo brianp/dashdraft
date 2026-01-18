@@ -93,7 +93,7 @@ export interface DirectoryListing {
 // Workspace & Drafts
 // ============================================================================
 
-export type DraftStatus = 'clean' | 'dirty' | 'autosaved';
+export type DraftStatus = 'clean' | 'dirty' | 'autosaved' | 'saving' | 'error';
 
 export interface FileDraft {
   path: string;

@@ -72,7 +72,7 @@ async function loadConfigFile(
           errors: result.errors,
         });
       }
-    } catch (err) {
+    } catch {
       // File doesn't exist or can't be read, continue
       logger.debug('Config file not found or unreadable', { owner, repo, file: fileName });
     }

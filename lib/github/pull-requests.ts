@@ -6,10 +6,7 @@
 
 import { getInstallationToken } from './app-auth';
 import { sanitizeErrorMessage } from '@/lib/constants/ux-terms';
-import { createLogger } from '@/lib/logger';
 import type { ProposalStatus } from '@/lib/types/api';
-
-const logger = createLogger('github-prs');
 
 // ============================================================================
 // Types

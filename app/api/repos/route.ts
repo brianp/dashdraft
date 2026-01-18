@@ -54,7 +54,7 @@ export async function GET(): Promise<NextResponse<GetReposResponse>> {
  *
  * Syncs repositories from GitHub for all user installations.
  */
-export async function POST(request: NextRequest): Promise<NextResponse> {
+export async function POST(_request: NextRequest): Promise<NextResponse> {
   try {
     const user = await requireUser();
     const db = authorizedDb(user.id);

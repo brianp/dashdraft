@@ -28,6 +28,7 @@ export function WysiwygEditor({
       }),
     ],
     content: markdownToHtml(value),
+    immediatelyRender: false,
     onUpdate: ({ editor }) => {
       const markdown = htmlToMarkdown(editor.getHTML());
       onChange(markdown);
@@ -527,7 +528,7 @@ function htmlToMarkdown(html: string): string {
   });
   markdown = markdown.replace(/<ol[^>]*>([\s\S]*?)<\/ol>/gi, (_, content) => {
     let index = 1;
-    return content.replace(/<li[^>]*>(.*?)<\/li>/gi, () => `${index++}. $1\n`) + '\n';
+    return content.replace(/<li[^>]*>(.*?)<\/li>/gi, (_match: string, text: string) => `${index++}. ${text}\n`) + '\n';
   });
 
   // Horizontal rules

@@ -5,7 +5,7 @@
  * Tracks drafts, modified content, and file status.
  */
 
-import type { DraftStatus, FileDraft, AssetDraft, RepoConfig } from '@/lib/types/api';
+import type { DraftStatus, FileDraft, RepoConfig } from '@/lib/types/api';
 
 // ============================================================================
 // Types

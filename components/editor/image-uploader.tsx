@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useCallback, useRef } from 'react';
-import { UX } from '@/lib/constants/ux-terms';
 import { validateAssetFilename, computeAssetDestination, generateImageMarkdown } from '@/lib/assets/pathing';
 import { resolveCollision } from '@/lib/assets/collision';
 import { saveAsset } from '@/lib/autosave/idb';

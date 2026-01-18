@@ -9,7 +9,7 @@ interface DraftStatusProps {
 }
 
 export function DraftStatusBadge({ status, lastSaved }: DraftStatusProps) {
-  const statusConfig = {
+  const statusConfig: Record<DraftStatus, { label: string; className: string }> = {
     clean: {
       label: 'Saved',
       className: 'text-[var(--success)]',
@@ -21,6 +21,14 @@ export function DraftStatusBadge({ status, lastSaved }: DraftStatusProps) {
     autosaved: {
       label: UX.AUTOSAVED,
       className: 'text-[var(--muted)]',
+    },
+    saving: {
+      label: 'Saving...',
+      className: 'text-[var(--primary)]',
+    },
+    error: {
+      label: 'Save failed',
+      className: 'text-[var(--error)]',
     },
   };
 

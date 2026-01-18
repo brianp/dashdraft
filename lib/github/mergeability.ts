@@ -4,7 +4,7 @@
  * Handles checking and polling for PR mergeability status.
  */
 
-import { getPRDetails, prStateToProposalStatus, checkMergeability } from './pull-requests';
+import { getPRDetails } from './pull-requests';
 import type { ProposalStatus } from '@/lib/types/api';
 import { createLogger } from '@/lib/logger';
 

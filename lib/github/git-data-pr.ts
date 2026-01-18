@@ -26,7 +26,7 @@ export interface TreeEntry {
   path: string;
   mode: '100644' | '100755' | '040000' | '160000' | '120000';
   type: 'blob' | 'tree' | 'commit';
-  sha: string;
+  sha: string | null; // null to delete a file
 }
 
 export interface AuthorInfo {
@@ -69,6 +69,7 @@ export async function createPRFromChangeset(
   logger.info('Creating blobs for changed files', {
     modified: Object.keys(changeset.modified).length,
     created: Object.keys(changeset.created).length,
+    deleted: changeset.deleted.length,
     assets: changeset.assets.length,
   });
 
@@ -112,6 +113,16 @@ export async function createPRFromChangeset(
       mode: '100644',
       type: 'blob',
       sha: blobSha,
+    });
+  }
+
+  // Deleted files - set sha to null to remove from tree
+  for (const deletedPath of changeset.deleted) {
+    treeEntries.push({
+      path: deletedPath,
+      mode: '100644',
+      type: 'blob',
+      sha: null,
     });
   }
 
