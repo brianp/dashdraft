@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useCallback, useState, useEffect, useMemo } from 'react';
+import { use, useCallback, useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { FileTree } from '@/components/file-tree';
 import { MarkdownEditor } from '@/components/editor/markdown-editor';
@@ -12,6 +12,10 @@ import { ResizableSplit } from '@/components/editor/resizable-split';
 import { NewFileModal } from '@/components/editor/new-file-modal';
 import { RenameFileModal } from '@/components/editor/rename-file-modal';
 import { DeleteFileDialog } from '@/components/editor/delete-file-dialog';
+import { AIKickstartPrompt } from '@/components/editor/ai-kickstart-prompt';
+import { AIWritingHint } from '@/components/editor/ai-writing-hint';
+import { useWritingFriction } from '@/lib/hooks/use-writing-friction';
+import { isKickstartEnabled, isAssistEnabled } from '@/lib/ai/feature-flags';
 import { UX } from '@/lib/constants/ux-terms';
 import { Logo } from '@/components/logo';
 import type { DraftStatus, Proposal } from '@/lib/types/api';
@@ -70,6 +74,23 @@ export default function RepoPage({ params }: PageProps) {
   // Proposal state
   const [showProposeModal, setShowProposeModal] = useState(false);
   const [activeProposal, setActiveProposal] = useState<Proposal | null>(null);
+
+  // AI state
+  const [kickstartEnabled] = useState(() => isKickstartEnabled());
+  const [assistEnabled] = useState(() => isAssistEnabled());
+  const [showKickstart, setShowKickstart] = useState(false);
+  // TODO: Wire cursor tracking from editor for better friction detection
+  const [cursorLine, _setCursorLine] = useState(0);
+  const editorContainerRef = useRef<HTMLDivElement>(null);
+
+  // Writing friction detector for AI assistance
+  const {
+    frictionDetected,
+    dismissForSession,
+    disableGlobally,
+    resetFriction,
+    markAsShown,
+  } = useWritingFriction(content, cursorLine, isNewFile, editorContainerRef);
 
   // Check for unsaved changes
   const hasUnsavedChanges = status !== 'clean' || pendingNewFiles.length > 0 || pendingDeletedFiles.length > 0 || pendingRenamedFiles.size > 0;
@@ -232,7 +253,43 @@ export default function RepoPage({ params }: PageProps) {
       savedAt: new Date().toISOString(),
       isNew: true,
     }));
-  }, [repoFullName]);
+    // Show AI kickstart prompt for new files
+    if (kickstartEnabled) {
+      setShowKickstart(true);
+    }
+  }, [repoFullName, kickstartEnabled]);
+
+  // Handle AI content insertion
+  const handleAIInsert = useCallback((aiContent: string) => {
+    // Append AI content to current content
+    const newContent = content ? `${content}\n\n${aiContent}` : aiContent;
+    setContent(newContent);
+    setStatus('dirty');
+    resetFriction();
+  }, [content, resetFriction]);
+
+  // Handle AI kickstart insertion (replaces content for new files)
+  const handleKickstartInsert = useCallback((aiContent: string) => {
+    setContent(aiContent);
+    setStatus('dirty');
+    setShowKickstart(false);
+    resetFriction();
+  }, [resetFriction]);
+
+  // Handle AI hint dismiss
+  const handleAIDismiss = useCallback(() => {
+    dismissForSession();
+  }, [dismissForSession]);
+
+  // Handle AI disable globally
+  const handleAIDisableGlobally = useCallback(() => {
+    disableGlobally();
+  }, [disableGlobally]);
+
+  // Handle kickstart dismiss
+  const handleKickstartDismiss = useCallback(() => {
+    setShowKickstart(false);
+  }, []);
 
   // Handle rename file
   const handleRenameFile = useCallback((path: string) => {
@@ -510,7 +567,34 @@ export default function RepoPage({ params }: PageProps) {
               </div>
             </div>
           ) : (
-            <div className="h-full flex flex-col">
+            <div className="h-full flex flex-col relative" ref={editorContainerRef}>
+              {/* AI Kickstart Prompt (for new/empty files) */}
+              {kickstartEnabled && showKickstart && isNewFile && (
+                <AIKickstartPrompt
+                  owner={owner}
+                  repo={repo}
+                  filePath={selectedFile}
+                  isNewFile={isNewFile}
+                  isEmpty={!content}
+                  onInsert={handleKickstartInsert}
+                  onDismiss={handleKickstartDismiss}
+                />
+              )}
+
+              {/* AI Writing Hint (for users showing friction) */}
+              {assistEnabled && selectedFile && !showKickstart && (
+                <AIWritingHint
+                  owner={owner}
+                  repo={repo}
+                  content={content}
+                  show={frictionDetected}
+                  onInsert={handleAIInsert}
+                  onDismiss={handleAIDismiss}
+                  onDisableGlobally={handleAIDisableGlobally}
+                  onMarkAsShown={markAsShown}
+                />
+              )}
+
               {/* Editor content */}
               <div className="flex-1 flex overflow-hidden">
                 {editorMode === 'visual' ? (

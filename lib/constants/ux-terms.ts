@@ -73,6 +73,21 @@ export const UX = {
   CANCEL: 'Cancel',
   CONTINUE: 'Continue',
   CLOSE: 'Close',
+
+  // AI Features
+  AI_ASSISTANT: 'Writing Assistant',
+  AI_GET_SUGGESTION: 'Get suggestion',
+  AI_INSERT: 'Insert',
+  AI_GENERATING: 'Generating...',
+  AI_HELP_START: 'Help me start',
+  AI_WRITE_SCRATCH: 'Write from scratch',
+  AI_GENERATE_OUTLINE: 'Generate outline',
+  AI_USE_OUTLINE: 'Use this outline',
+  AI_NEED_HELP: 'Need help continuing?',
+  AI_OFFER_MESSAGE: 'I can suggest what to write next.',
+  AI_NEW_DOC_TITLE: 'Start a new document',
+  AI_NEW_DOC_MESSAGE: 'Would you like help getting started? Describe what you want to document and I\'ll create an outline for you.',
+  AI_WHAT_TO_DOCUMENT: 'What would you like to document?',
 } as const;
 
 /**

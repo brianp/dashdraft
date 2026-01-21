@@ -247,3 +247,46 @@ export function validateMarkdownContent(content: string): { valid: boolean; erro
 
   return { valid: true };
 }
+
+// ============================================================================
+// AI Feature Validation
+// ============================================================================
+
+/**
+ * Maximum length for AI kickstart summary
+ */
+export const MAX_AI_SUMMARY_LENGTH = 500;
+
+/**
+ * Maximum content length to send to AI (to stay within token limits)
+ */
+export const MAX_AI_CONTENT_LENGTH = 50000;
+
+/**
+ * Schema for AI kickstart request
+ * Note: useCompletion sends the user's text as "prompt"
+ */
+export const aiKickstartSchema = z.object({
+  prompt: z
+    .string()
+    .min(10, 'Please provide a bit more detail (at least 10 characters)')
+    .max(MAX_AI_SUMMARY_LENGTH, `Summary must be less than ${MAX_AI_SUMMARY_LENGTH} characters`),
+  context: z
+    .object({
+      repoName: z.string().optional(),
+      filePath: z.string().optional(),
+    })
+    .optional(),
+});
+
+/**
+ * Schema for AI assist request
+ * Note: useCompletion sends the user's text as "prompt"
+ */
+export const aiAssistSchema = z.object({
+  prompt: z
+    .string()
+    .max(MAX_AI_CONTENT_LENGTH, 'Document is too long for AI assistance'),
+  cursorPosition: z.number().int().nonnegative().optional(),
+  assistType: z.enum(['continue', 'improve', 'explain']).optional(),
+});
